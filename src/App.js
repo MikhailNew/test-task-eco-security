@@ -1,97 +1,31 @@
 import React, { Component } from 'react'
 import Loader from './Loader/Loader'
-import Container from '@material-ui/core/Container';
-import axios from 'axios'
+import Container from '@material-ui/core/Container'
 import FilmsList from './FilmsList/FilmsList'
-import Pagination from '@material-ui/lab/Pagination';
-import Typography from '@material-ui/core/Typography';
-import Box from '@material-ui/core/Box';
-import List from '@material-ui/core/List';
-import FormControl from '@material-ui/core/FormControl';
-import InputLabel from '@material-ui/core/InputLabel';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import Pagination from '@material-ui/lab/Pagination'
+import Typography from '@material-ui/core/Typography'
+import Box from '@material-ui/core/Box'
+import List from '@material-ui/core/List'
+import FormControl from '@material-ui/core/FormControl'
+import InputLabel from '@material-ui/core/InputLabel'
+import InputAdornment from '@material-ui/core/InputAdornment'
+import OutlinedInput from '@material-ui/core/OutlinedInput'
+import { connect } from 'react-redux'
+import fetchFilms, {pageChangeClick, searchHandler} from './store/actions/films'
 
 
 
 class App extends Component {
-
-    state = {
-        isLoading: true,
-        page: 1,
-        search: 'film',
-        totalResults: 0,
-        films: []
-    }
-
-    pageChangeHandler = (event, page) => {
-        this.state.page === page 
-        ?   null
-        :   this.setState({
-                page,
-                isLoading: true
-            })
-    }
-
-    onChangeSearch = event => {
-        event.target.value.length > 3
-        ?   this.setState({
-                search: event.target.value,
-                isLoading: true
-            })
-        :   null
-    }
     
-    async componentDidMount () {
-        try {
-            const response = await axios.get(`http://www.omdbapi.com/?apikey=a3b3f437&type=movie&s=${this.state.search}&page=${this.state.page}`)
-            let films = []
-            let totalResults = +response.data.totalResults 
-            response.data.Search.map(item => {
-                films.push(item)
-            })
-            this.setState({
-                films,
-                isLoading: false,
-                totalResults
-            })
-        } catch (e) {
-            console.log(e)
-        }
+    componentDidMount () {
+        this.props.fetchFilms(this.props.search, this.props.page, false)
     }
 
-    async componentDidUpdate(prevProps, prevState) {
-        if (this.state.page !== prevState.page) {
-            try {
-                const response = await axios.get(`http://www.omdbapi.com/?apikey=a3b3f437&type=movie&s=${this.state.search}&page=${this.state.page}`)
-                let films = []
-                response.data.Search.map(item => {
-                    films.push(item)
-                })
-                this.setState({
-                    films,
-                    isLoading: false
-                })
-            } catch (e) {
-                console.log(e)
-            }
-        } else if (this.state.search !== prevState.search) {
-            try {
-                const response = await axios.get(`http://www.omdbapi.com/?apikey=a3b3f437&type=movie&s=${this.state.search}&page=${this.state.page}`)
-                let films = []
-                let totalResults = +response.data.totalResults 
-                response.data.Search.map(item => {
-                    films.push(item)
-                })
-                this.setState({
-                    films,
-                    page: 1,
-                    isLoading: false,
-                    totalResults
-                })
-            } catch (e) {
-                console.log(e)
-            }
+    componentDidUpdate(prevProps, prevState) {
+        if (this.props.page !== prevProps.page) {
+            this.props.fetchFilms(this.props.search, this.props.page, false)
+        } else if (this.props.search !== prevProps.search) {
+            this.props.fetchFilms(this.props.search, this.props.page, true)
         }
     }
 
@@ -106,24 +40,24 @@ class App extends Component {
                             id="outlined-adornment-amount"
                             startAdornment={<InputAdornment position="start">&#128270;</InputAdornment>}
                             labelWidth={60}
-                            onChange={this.onChangeSearch}
+                            onChange={this.props.searchHandler}
                         />
                     </FormControl>
                     {
-                        this.state.isLoading
+                        this.props.isLoading
                         ?   <Box textAlign="center" m={1}>
                                 <Loader />
                             </Box>
                         :   <> 
                                 <List component="nav">
-                                    <FilmsList films={this.state.films} />
+                                    <FilmsList films={this.props.films} />
                                 </List>
                                 {
-                                    this.state.totalResults > 10
+                                    this.props.totalResults > 10
                                     ?   <Pagination 
-                                            count={this.state.totalResults % 10 === 0 ? this.state.totalResults / 10 : Math.ceil(this.state.totalResults / 10)} 
-                                            onChange={this.pageChangeHandler}
-                                            page={this.state.page}
+                                            count={this.props.totalResults % 10 === 0 ? this.props.totalResults / 10 : Math.ceil(this.props.totalResults / 10)} 
+                                            onChange={this.props.pageChangeClick}
+                                            page={this.props.page}
                                         />
                                     :   null
                                 }
@@ -135,4 +69,22 @@ class App extends Component {
     }
 }
 
-export default App
+function mapStateToProps (state) {
+    return {
+        isLoading: state.films.isLoading,
+        page: state.films.page,
+        search: state.films.search,
+        totalResults: state.films.totalResults,
+        films: state.films.films
+    }
+}
+
+function mapDispatchToProps (dispatch) {
+    return {
+        fetchFilms: (search, page, isChangeSearch) => dispatch(fetchFilms(search, page, isChangeSearch)),
+        pageChangeClick: (event, page) => dispatch(pageChangeClick(event, page)),
+        searchHandler: event => dispatch(searchHandler(event))
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App)

@@ -1,10 +1,10 @@
-import React from 'react';
-import FilmsList from '../FilmsList/FilmsList';
-import List from '@material-ui/core/List';
-import FormControl from '@material-ui/core/FormControl';
-import InputLabel from '@material-ui/core/InputLabel';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import React from 'react'
+import FilmsList from '../FilmsList/FilmsList'
+import List from '@material-ui/core/List'
+import FormControl from '@material-ui/core/FormControl'
+import InputLabel from '@material-ui/core/InputLabel'
+import InputAdornment from '@material-ui/core/InputAdornment'
+import OutlinedInput from '@material-ui/core/OutlinedInput'
 
 
 function SearchPlace (props) { 
